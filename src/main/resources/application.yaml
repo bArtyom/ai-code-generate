@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: ai-code-mother-backend
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+
