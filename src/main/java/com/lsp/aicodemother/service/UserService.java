@@ -1,7 +1,7 @@
 package com.lsp.aicodemother.service;
 
 import com.mybatisflex.core.service.IService;
-import com.lsp.aicodemother.entity.User;
+import com.lsp.aicodemother.model.entity.User;
 
 /**
  * 用户 服务层。
