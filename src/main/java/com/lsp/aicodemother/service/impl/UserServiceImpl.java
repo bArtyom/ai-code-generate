@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
+import com.lsp.aicodemother.exception.ThrowUtils;
 import com.lsp.aicodemother.model.vo.LoginUserVO;
 import com.lsp.aicodemother.model.enums.UserRoleEnum;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -97,6 +98,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
         }
         return user.getId();
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        //判断是否已经登录
+        Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser=(User) userObj;
+        ThrowUtils.throwIf(currentUser==null||currentUser.getId()==null,ErrorCode.NOT_LOGIN_ERROR);
+        //从数据库查询（防止用户信息被修改）
+        long userId=currentUser.getId();
+        currentUser=this.getById(userId);
+        ThrowUtils.throwIf(currentUser==null,ErrorCode.NOT_LOGIN_ERROR);
+        return currentUser;
+    }
+
+    @Override
+    public boolean userLogout(HttpServletRequest request) {
+        //判断是否已登录
+        Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser=(User) userObj;
+
     }
 }
 
