@@ -1,6 +1,14 @@
 package com.lsp.aicodemother.controller.controller;
 
+import com.lsp.aicodemother.common.BaseResponse;
+import com.lsp.aicodemother.common.ResultUtils;
+import com.lsp.aicodemother.exception.ErrorCode;
+import com.lsp.aicodemother.exception.ThrowUtils;
+import com.lsp.aicodemother.model.dto.user.UserLoginRequest;
+import com.lsp.aicodemother.model.dto.user.UserRegisterRequest;
+import com.lsp.aicodemother.model.vo.LoginUserVO;
 import com.mybatisflex.core.paginate.Page;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -91,4 +99,28 @@ public class UserController {
         return userService.page(page);
     }
 
+
+    /**
+     * 用户注册
+     * @param userRegisterRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("register")
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userRegisterRequest==null, ErrorCode.PARAMS_ERROR);
+        String userAccount=userRegisterRequest.getUserAccount();
+        String userPassword=userRegisterRequest.getUserPassword();
+        String checkPassword=userRegisterRequest.getCheckPassword();
+        Long result=userService.userRegister(userAccount, userPassword, checkPassword);
+        return ResultUtils.success(result);
+    }
+
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userLoginRequest==null, ErrorCode.PARAMS_ERROR);
+        String userAccount=userLoginRequest.getUserAccount();
+        String userPassword=userLoginRequest.getUserPassword();
+        LoginUserVO result=userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(result);
+    }
 }
