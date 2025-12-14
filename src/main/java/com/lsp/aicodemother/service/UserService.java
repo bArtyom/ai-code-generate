@@ -1,6 +1,7 @@
 package com.lsp.aicodemother.service;
 
 import com.lsp.aicodemother.model.vo.LoginUserVO;
+import com.lsp.aicodemother.model.vo.UserVO;
 import com.mybatisflex.core.service.IService;
 import com.lsp.aicodemother.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,4 +59,6 @@ public interface UserService extends IService<User> {
      */
     boolean userLogout(HttpServletRequest request);
 
+
+    UserVO getUserVO(User user);
 }

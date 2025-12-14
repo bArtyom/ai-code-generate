@@ -117,7 +117,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     public boolean userLogout(HttpServletRequest request) {
         //判断是否已登录
         Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser=(User) userObj;
+        if(userObj==null){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"未登录");
+        }
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return true;
 
     }
 }
