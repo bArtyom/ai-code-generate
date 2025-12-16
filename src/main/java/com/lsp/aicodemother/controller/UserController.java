@@ -1,25 +1,24 @@
 package com.lsp.aicodemother.controller;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.lsp.aicodemother.annotation.AuthCheck;
 import com.lsp.aicodemother.common.BaseResponse;
+import com.lsp.aicodemother.common.DeleteRequest;
 import com.lsp.aicodemother.common.ResultUtils;
+import com.lsp.aicodemother.constant.UserConstant;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.exception.ThrowUtils;
-import com.lsp.aicodemother.model.dto.user.UserLoginRequest;
-import com.lsp.aicodemother.model.dto.user.UserRegisterRequest;
+import com.lsp.aicodemother.model.dto.user.*;
 import com.lsp.aicodemother.model.vo.LoginUserVO;
+import com.lsp.aicodemother.model.vo.UserVO;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import net.bytebuddy.implementation.bytecode.Throw;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.service.UserService;
-import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 /**
@@ -147,4 +146,104 @@ public class UserController {
         boolean result=userService.userLogout(request);
         return ResultUtils.success(result);
     }
+
+    /**
+     * 添加用户（仅管理员可用）
+     * @param userAddRequest
+     * @return
+     */
+    @PostMapping("/add")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest){
+        ThrowUtils.throwIf(userAddRequest==null, ErrorCode.PARAMS_ERROR);
+        User user=new User();
+        BeanUtil.copyProperties(userAddRequest, user);
+        //默认密码12345678
+        final String DEFAULT_PASSWORD="12345678";
+        String encryptPassword=userService.getEncryptPassword(DEFAULT_PASSWORD);
+        user.setUserPassword(encryptPassword);
+        boolean result=userService.save(user);
+        ThrowUtils.throwIf(result,ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(user.getId());
+    }
+
+
+    /**
+     * 根据id获取用户信息（仅管理员可用）
+     * @param id
+     * @return
+     */
+    @GetMapping("/get")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<User> getUserById(@RequestParam long id){
+        ThrowUtils.throwIf(id<=0, ErrorCode.PARAMS_ERROR);
+        User user=userService.getById(id);
+        ThrowUtils.throwIf(user==null, ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(user);
+    }
+
+    /**
+     * 根据id获取用户信息视图
+     * @param id
+     * @return
+     */
+    public BaseResponse<UserVO> getUserVOById(long id){
+        BaseResponse<User> response=getUserById(id);
+        User user=response.getData();
+        UserVO userVO=userService.getUserVO(user);
+        return ResultUtils.success(userVO);
+    }
+
+    /**
+     * 根据id删除用户（仅管理员可用）
+     * @param deleteRequest
+     * @return
+     */
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest){
+        ThrowUtils.throwIf(deleteRequest==null||deleteRequest.getId()<=0, ErrorCode.PARAMS_ERROR);
+        boolean result=userService.removeById(deleteRequest.getId());
+        return ResultUtils.success(result);
+    }
+
+
+    /**
+     * 更新用户信息（仅管理员可用）
+     * @param userUpdateRequest
+     * @return
+     */
+    @PostMapping("/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest){
+        ThrowUtils.throwIf(userUpdateRequest==null||userUpdateRequest.getId()==null, ErrorCode.PARAMS_ERROR);
+        User user=new User();
+        BeanUtil.copyProperties(userUpdateRequest, user);
+        boolean result=userService.updateById(user);
+        ThrowUtils.throwIf(result,ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 分页获取用户信息视图列表（仅管理员可用）
+     * @param userQueryRequest
+     * @return
+     */
+    @PostMapping("/list/page/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<UserVO>> listUserVOBYPage(@RequestBody UserQueryRequest userQueryRequest){
+        ThrowUtils.throwIf(userQueryRequest==null, ErrorCode.PARAMS_ERROR);
+        long pageNum=userQueryRequest.getPageNum();
+        long pageSize=userQueryRequest.getPageSize();
+        Page<User> userPage = userService.page(Page.of(pageNum, pageSize), userService.getQueryWrapper(userQueryRequest));
+
+        //数据脱敏
+        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalRow());
+        List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
+        userVOPage.setRecords(userVOList);
+        return ResultUtils.success(userVOPage);
+    }
+
+
+
 }
