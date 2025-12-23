@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务记录网站</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold text-center mb-4">任务记录</h1>
+    <div class="flex flex-col md:flex-row gap-4">
+      <input type="text" id="taskInput" class="border rounded p-2 w-full md:w-3/4" placeholder="输入新任务...">
+      <button id="addTaskBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">添加任务</button>
+    </div>
+    <ul id="taskList" class="mt-4 list-none">
+      <!-- 任务项将动态生成 -->
+    </ul>
+  </div>
+  <script>
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
+      const taskInput = document.getElementById('taskInput');
+      const taskText = taskInput.value.trim();
+      if (taskText) {
+        const taskList = document.getElementById('taskList');
+        const li = document.createElement('li');
+        li.className = 'p-2 bg-gray-100 rounded mb-2 flex justify-between items-center';
+        li.innerHTML = `<span class="text-gray-700">${taskText}</span><button class="text-red-500 hover:text-red-700" onclick="removeTask(this)">删除</button>`;
+        taskList.appendChild(li);
+        taskInput.value = '';
+      }
+    });
+
+    function removeTask(button) {
+      const li = button.parentElement;
+      li.remove();
+    }
+  </script>
+</body>
+</html>

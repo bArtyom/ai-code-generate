@@ -141,6 +141,7 @@ public class UserController {
         return ResultUtils.success(userService.getLoginUserVO(loginUser));
     }
 
+    @GetMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
         ThrowUtils.throwIf(request==null,ErrorCode.PARAMS_ERROR);
         boolean result=userService.userLogout(request);
@@ -187,6 +188,7 @@ public class UserController {
      * @param id
      * @return
      */
+    @GetMapping("/get/vo")
     public BaseResponse<UserVO> getUserVOById(long id){
         BaseResponse<User> response=getUserById(id);
         User user=response.getData();

@@ -1,0 +1,19 @@
+# AI
+langchain4j:
+    ollama:
+      chat-model:
+        base-url: http://localhost:11434
+        model-name: qwen3:4b
+        log-requests: true
+        log-responses: true
+        max-tokens: 8192
+        timeout: 60s
+        format: json
+      streaming-chat-model:
+        base-url: http://localhost:11434
+        model-name: qwen3:4b
+        log-requests: true
+        log-responses: true
+        timeout: 60s
+        format: json
+        max-tokens: 8192
