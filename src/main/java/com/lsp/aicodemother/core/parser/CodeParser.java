@@ -4,7 +4,7 @@ package com.lsp.aicodemother.core.parser;
  * 代码解析器策略接口
  * * @author yupi
  */
-public interface CodeParser<T> {
+public interface  CodeParser<T> {
 
     /**
      * 解析代码内容

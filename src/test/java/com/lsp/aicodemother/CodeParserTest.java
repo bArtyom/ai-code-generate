@@ -2,7 +2,8 @@ package com.lsp.aicodemother;
 
 import com.lsp.aicodemother.ai.model.HtmlCodeResult;
 import com.lsp.aicodemother.ai.model.MultiFileCodeResult;
-import com.lsp.aicodemother.core.CodeParser;
+import com.lsp.aicodemother.core.parser.HtmlCodeParser;
+import com.lsp.aicodemother.core.parser.MultiFileCodeParser;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,7 +22,8 @@ class CodeParserTest {
                        </html>
                        ```
                 """;
-        HtmlCodeResult result = CodeParser.parseHtmlCode(codeContent);
+        HtmlCodeParser parser = new HtmlCodeParser();
+        HtmlCodeResult result = parser.parseCode(codeContent);
         System.out.println(result.getHtmlCode());
         assertNotNull(result);
         assertNotNull(result.getHtmlCode());
@@ -54,7 +56,9 @@ class CodeParserTest {
 
                 文件创建完成！
                 """;
-        MultiFileCodeResult result = CodeParser.parseMultiFileCode(codeContent);
+
+        MultiFileCodeParser parser = new MultiFileCodeParser();
+        MultiFileCodeResult result = parser.parseCode(codeContent);
         assertNotNull(result);
         assertNotNull(result.getHtmlCode());
         assertNotNull(result.getCssCode());

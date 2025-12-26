@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任务清单</title>
+  <style>
+    body { margin: 0; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <h1 class="text-2xl font-bold text-center">任务清单</h1>
+  <div class="max-w-md mx-auto p-4">
+    <input type="text" id="taskInput" placeholder="输入新任务" class="w-full p-2 mb-4 border border-gray-300 rounded">
+    <button id="addTaskBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">添加任务</button>
+  </div>
+  <ul id="taskList" class="max-w-md mx-auto p-4 space-y-2"></ul>
+  <script>
+    let tasks = [];
+
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
+      const input = document.getElementById('taskInput');
+      const taskText = input.value.trim();
+      if (taskText) {
+        tasks.push(taskText);
+        input.value = '';
+        renderTasks();
+      }
+    });
+
+    function renderTasks() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center space-x-2';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'form-checkbox h-5 w-5 text-blue-500';
+        const span = document.createElement('span');
+        span.className = 'ml-2 text-gray-700';
+        span.textContent = task;
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '删除';
+        deleteBtn.className = 'text-red-500 hover:text-red-600';
+        deleteBtn.addEventListener('click', () => {
+          const index = tasks.indexOf(task);
+          if (index !== -1) {
+            tasks.splice(index, 1);
+            renderTasks();
+          }
+        });
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        taskList.appendChild(li);
+      });
+    }
+
+    renderTasks();
+  </script>
+</body>
+</html>

@@ -196,5 +196,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
 }
 
