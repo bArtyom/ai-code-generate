@@ -2,6 +2,7 @@ package com.lsp.aicodemother.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.lsp.aicodemother.annotation.AuthCheck;
 import com.lsp.aicodemother.common.BaseResponse;
 import com.lsp.aicodemother.common.DeleteRequest;
@@ -22,14 +23,21 @@ import com.lsp.aicodemother.model.vo.AppVO;
 import com.lsp.aicodemother.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
+
 import jakarta.servlet.http.HttpServletRequest;
-import net.bytebuddy.implementation.bytecode.Throw;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.lsp.aicodemother.service.AppService;
+import reactor.core.publisher.Flux;
 
+
+import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用 控制层。
@@ -45,6 +53,8 @@ public class AppController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private BuildProperties buildProperties;
 
     // region 用户基础功能
 
@@ -358,6 +368,28 @@ public class AppController {
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类
         return ResultUtils.success(appService.getAppVO(app));
+    }
+
+
+    @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam Long appId,@RequestParam String message,HttpServletRequest request){
+        //参数校验
+        ThrowUtils.throwIf(appId==null||appId<=0,ErrorCode.PARAMS_ERROR,"应用ID无效");
+        ThrowUtils.throwIf(StrUtil.isBlank(message),ErrorCode.PARAMS_ERROR,"用户消息不能为空");
+        //获取当前登录用户
+        User loginUser=userService.getLoginUser(request);
+        //调用服务生成代码（流式返回）
+        Flux<String>contentFlux=appService.chatToGenCode(appId,message,loginUser);
+        //转换为ServerSentEvent 格式
+        return contentFlux
+                .map(chunk->{
+                    //将内容包装成JSON对象
+                    Map<String,String> wrapper= Map.of("d",chunk);
+                    String jsonData= JSONUtil.toJsonStr(wrapper);
+                    return ServerSentEvent.<String>builder()
+                            .data(jsonData)
+                            .build();
+                });
     }
 }
 
