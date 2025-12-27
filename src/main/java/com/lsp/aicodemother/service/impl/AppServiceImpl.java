@@ -13,7 +13,7 @@ import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
 import com.lsp.aicodemother.model.vo.UserVO;
-import com.lsp.aicodemother.service.UserService;
+import com.lsp.aicodemother.Serve.UserService;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.lsp.aicodemother.service.AppService;

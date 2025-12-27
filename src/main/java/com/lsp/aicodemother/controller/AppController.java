@@ -20,21 +20,20 @@ import com.lsp.aicodemother.model.entity.App;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
-import com.lsp.aicodemother.service.UserService;
+import com.lsp.aicodemother.Serve.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.boot.info.BuildProperties;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.lsp.aicodemother.service.AppService;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 
-import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +52,7 @@ public class AppController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private BuildProperties buildProperties;
+
 
     // region 用户基础功能
 
@@ -77,7 +75,7 @@ public class AppController {
         // 参数校验
         App app = new App();
         BeanUtil.copyProperties(appAddRequest, app);
-        appService.validApp(app, true);
+
         
         // 填充数据
         app.setUserId(loginUser.getId());
@@ -85,6 +83,8 @@ public class AppController {
         app.setAppName(initPrompt.substring(0,Math.min(initPrompt.length(),12)));
         //暂时设置成多文件生成
         app.setCodeGenType(CodeGenTypeEnum.MULTI_FILE.getValue());
+
+        appService.validApp(app, true);
         
         // 保存到数据库
         boolean result = appService.save(app);
@@ -384,12 +384,18 @@ public class AppController {
         return contentFlux
                 .map(chunk->{
                     //将内容包装成JSON对象
+                    //json能自动处理换行，\n->\\n,因为ServerSentEvent会把每个数据块当作一行处理
+                    //遇到换行符会导致解析错误
                     Map<String,String> wrapper= Map.of("d",chunk);
                     String jsonData= JSONUtil.toJsonStr(wrapper);
                     return ServerSentEvent.<String>builder()
                             .data(jsonData)
                             .build();
-                });
+                })
+                .concatWith(Mono.just(ServerSentEvent.<String>builder()
+                        .event("done")
+                        .data("")
+                .build()));
     }
 }
 

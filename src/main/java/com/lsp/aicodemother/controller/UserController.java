@@ -13,11 +13,10 @@ import com.lsp.aicodemother.model.vo.LoginUserVO;
 import com.lsp.aicodemother.model.vo.UserVO;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.servlet.http.HttpServletRequest;
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.lsp.aicodemother.model.entity.User;
-import com.lsp.aicodemother.service.UserService;
+import com.lsp.aicodemother.Serve.UserService;
 
 import java.util.List;
 

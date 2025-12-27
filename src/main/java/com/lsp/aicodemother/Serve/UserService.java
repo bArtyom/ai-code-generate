@@ -1,4 +1,4 @@
-package com.lsp.aicodemother.service;
+package com.lsp.aicodemother.Serve;
 
 import com.lsp.aicodemother.model.dto.user.UserQueryRequest;
 import com.lsp.aicodemother.model.vo.LoginUserVO;
