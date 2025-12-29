@@ -11,6 +11,7 @@ package com.lsp.aicodemother.controller;
  * annotations on the handler methods within this controller.
  */
 
+import com.lsp.aicodemother.constant.AppConstant;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,9 +32,9 @@ import java.io.File;
 public class StaticResourceController {
 
     //应用生成根目录
-    private static final String PREVIEW_ROOT_DIR=System.getProperty("user.dir")
-            +"/tmp/code_output";
+    private static final String PREVIEW_ROOT_DIR= AppConstant.CODE_OUTPUT_ROOT_DIR;
 
+    @GetMapping("/{deployKey}/**")
     public ResponseEntity<Resource> serveStaticResource(
             @PathVariable String deployKey,
             HttpServletRequest request
@@ -42,7 +44,7 @@ public class StaticResourceController {
             String resourcePath=(String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
             resourcePath=resourcePath.substring(("/static/"+deployKey).length());
 
-            //如果是目录访问（不带斜杠），重定向到岱斜杠的url
+            //如果是目录访问（不带斜杠），重定向到带斜杠的url
             if(resourcePath.isEmpty()){
                 HttpHeaders headers=new HttpHeaders();
                 headers.add("Location",request.getRequestURI()+"/");

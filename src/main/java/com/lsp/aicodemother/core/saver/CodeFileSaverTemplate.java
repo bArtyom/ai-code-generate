@@ -3,6 +3,7 @@ package com.lsp.aicodemother.core.saver;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.lsp.aicodemother.constant.AppConstant;
 import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 public abstract class CodeFileSaverTemplate<T> {
 
     //文件保存目录
-    protected static final String FILE_SAVE_PATH = System.getProperty("user.dir")+"/tmp/code_output";
+    protected static final String FILE_SAVE_PATH = AppConstant.CODE_OUTPUT_ROOT_DIR;
 
     public final File saveCode(T result,long appId){
         //1、验证输入

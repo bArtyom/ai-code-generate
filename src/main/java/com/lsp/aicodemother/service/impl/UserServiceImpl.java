@@ -13,7 +13,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.mapper.UserMapper;
-import com.lsp.aicodemother.Serve.UserService;
+import com.lsp.aicodemother.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;

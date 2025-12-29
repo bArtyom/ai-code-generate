@@ -1,4 +1,4 @@
-package com.lsp.aicodemother.service;
+package com.lsp.aicodemother.Serve;
 
 public interface ServeDeployService {
 

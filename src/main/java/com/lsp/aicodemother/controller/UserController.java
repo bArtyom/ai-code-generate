@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.lsp.aicodemother.model.entity.User;
-import com.lsp.aicodemother.Serve.UserService;
+import com.lsp.aicodemother.service.UserService;
 
 import java.util.List;
 

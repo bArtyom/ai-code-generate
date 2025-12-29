@@ -1,7 +1,11 @@
 package com.lsp.aicodemother.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IORuntimeException;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.lsp.aicodemother.constant.AppConstant;
 import com.lsp.aicodemother.core.AiCodeGeneratorFacade;
 import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
@@ -13,7 +17,7 @@ import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
 import com.lsp.aicodemother.model.vo.UserVO;
-import com.lsp.aicodemother.Serve.UserService;
+import com.lsp.aicodemother.service.UserService;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.lsp.aicodemother.service.AppService;
@@ -22,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -155,6 +161,45 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(codeGenTypeEnum==null,ErrorCode.PARAMS_ERROR,"不支持的代码生成类型");
         //5、调用AI生成代码
         return aiCodeGeneratorFacade.generateAndSaveCodeStream(message,codeGenTypeEnum,appId);
+    }
+
+    @Override
+    public String deployApp(Long appId, User loginUser) {
+        //参数校验
+        ThrowUtils.throwIf(appId==null||appId<=0, ErrorCode.PARAMS_ERROR, "应用ID不能为空");
+        ThrowUtils.throwIf(loginUser==null,ErrorCode.NOT_LOGIN_ERROR,"用户未登录");
+        //查询应用信息
+        App app=this.getById(appId);
+        ThrowUtils.throwIf(app==null,ErrorCode.PARAMS_ERROR,"应用不存在");
+        //验证用户是否有权限访问该应用，仅本人可以部署应用
+        ThrowUtils.throwIf(!app.getUserId().equals(loginUser.getId()),ErrorCode.NO_AUTH_ERROR,"无权限访问该应用");
+        //检查是否已经有deployKey
+        String deployKey=app.getDeployKey();
+        if(StrUtil.isBlank(deployKey)){
+           deployKey= RandomUtil.randomString(6);
+        }
+        //获取代码生成类型，构建源目录路径
+        String codeGenType=app.getCodeGenType();
+        String sourceDirName=codeGenType+"_"+appId;
+        String sourceDirPath= AppConstant.CODE_OUTPUT_ROOT_DIR+ File.separator+sourceDirName;
+        //检查源目录是否存在
+        File sourceDir=new File(sourceDirPath);
+        ThrowUtils.throwIf(!sourceDir.exists()||!sourceDir.isDirectory(),ErrorCode.OPERATION_ERROR,"源代码目录不存在，无法部署应用");
+        //复制文件到部署目录
+        String deployDirPath=AppConstant.CODE_DEPLOY_ROOT_DIR+File.separator+deployKey;
+        try {
+            FileUtil.copyContent(sourceDir,new File(deployDirPath),true);
+        } catch (IORuntimeException e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"部署应用失败，文件操作异常:"+e.getMessage());
+        }
+        //更新应用的deployKey和部署时间
+        App updateApp=new App();
+        updateApp.setId(appId);
+        updateApp.setDeployKey(deployKey);
+        updateApp.setDeployedTime(LocalDateTime.now());
+        boolean result=this.updateById(updateApp);
+        ThrowUtils.throwIf(!result,ErrorCode.SYSTEM_ERROR,"部署应用失败，更新应用信息异常");
+        return String.format("%s/%s/",AppConstant.CODE_DEPLOY_HOST,deployKey);
     }
 }
 

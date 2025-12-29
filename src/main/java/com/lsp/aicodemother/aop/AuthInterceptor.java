@@ -6,7 +6,7 @@ import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.UserRoleEnum;
-import com.lsp.aicodemother.Serve.UserService;
+import com.lsp.aicodemother.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;

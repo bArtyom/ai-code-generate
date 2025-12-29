@@ -1,16 +1,15 @@
 package com.lsp.aicodemother.Serve;
 
-import com.lsp.aicodemother.service.ServeDeployService;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class ServeLifecycleManager {
 
-    @Autowired
+    //@Autowired
     private ServeDeployService serveDeployService;
 
 

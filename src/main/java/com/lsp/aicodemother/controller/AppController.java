@@ -12,15 +12,12 @@ import com.lsp.aicodemother.constant.UserConstant;
 import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.exception.ThrowUtils;
-import com.lsp.aicodemother.model.dto.app.AppAddRequest;
-import com.lsp.aicodemother.model.dto.app.AppAdminUpdateRequest;
-import com.lsp.aicodemother.model.dto.app.AppQueryRequest;
-import com.lsp.aicodemother.model.dto.app.AppUpdateRequest;
+import com.lsp.aicodemother.model.dto.app.*;
 import com.lsp.aicodemother.model.entity.App;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
-import com.lsp.aicodemother.Serve.UserService;
+import com.lsp.aicodemother.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 
@@ -371,6 +368,13 @@ public class AppController {
     }
 
 
+    /**
+     * 聊天生成代码（SSE 流式返回）
+     * @param appId
+     * @param message
+     * @param request
+     * @return
+     */
     @GetMapping(value="/chat/gen/code",produces= MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam Long appId,@RequestParam String message,HttpServletRequest request){
         //参数校验
@@ -396,6 +400,26 @@ public class AppController {
                         .event("done")
                         .data("")
                 .build()));
+    }
+
+
+    /**
+     * 应用部署
+     *
+     * @param appDeployRequest 部署请求
+     * @param request 请求
+     * @return 部署 URL
+     */
+    @PostMapping("/deploy")
+    public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(appDeployRequest == null, ErrorCode.PARAMS_ERROR);
+        Long appId = appDeployRequest.getAppId();
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 调用服务部署应用
+        String deployUrl = appService.deployApp(appId, loginUser);
+        return ResultUtils.success(deployUrl);
     }
 }
 
