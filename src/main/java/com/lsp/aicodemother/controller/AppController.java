@@ -13,10 +13,13 @@ import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.exception.ThrowUtils;
 import com.lsp.aicodemother.model.dto.app.*;
+import com.lsp.aicodemother.model.dto.chathistory.ChatHistoryQueryRequest;
 import com.lsp.aicodemother.model.entity.App;
+import com.lsp.aicodemother.model.entity.ChatHistory;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
+import com.lsp.aicodemother.service.ChatHistoryService;
 import com.lsp.aicodemother.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -49,6 +52,9 @@ public class AppController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ChatHistoryService chatHistoryService;
 
 
     // region 用户基础功能
@@ -291,26 +297,6 @@ public class AppController {
         return ResultUtils.success(true);
     }
 
-    /**
-     * 管理员分页获取应用列表
-     *
-     * @param appQueryRequest 查询请求
-     * @return 应用列表
-     */
-    @PostMapping("/admin/list/page/vo")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<AppVO>> listAppVOByPageByAdmin(@RequestBody AppQueryRequest appQueryRequest) {
-        ThrowUtils.throwIf(appQueryRequest == null, ErrorCode.PARAMS_ERROR);
-        long pageNum = appQueryRequest.getPageNum();
-        long pageSize = appQueryRequest.getPageSize();
-        QueryWrapper queryWrapper = appService.getQueryWrapper(appQueryRequest);
-        Page<App> appPage = appService.page(Page.of(pageNum, pageSize), queryWrapper);
-        // 数据封装
-        Page<AppVO> appVOPage = new Page<>(pageNum, pageSize, appPage.getTotalRow());
-        List<AppVO> appVOList = appService.getAppVOList(appPage.getRecords());
-        appVOPage.setRecords(appVOList);
-        return ResultUtils.success(appVOPage);
-    }
 
     /**
      * 【管理员】根据 id 查看应用详情
@@ -384,6 +370,8 @@ public class AppController {
         User loginUser=userService.getLoginUser(request);
         //调用服务生成代码（流式返回）
         Flux<String>contentFlux=appService.chatToGenCode(appId,message,loginUser);
+        //应用对话次数+1
+        appService.incrementConversationCount(appId);
         //转换为ServerSentEvent 格式
         return contentFlux
                 .map(chunk->{
@@ -420,6 +408,36 @@ public class AppController {
         // 调用服务部署应用
         String deployUrl = appService.deployApp(appId, loginUser);
         return ResultUtils.success(deployUrl);
+    }
+
+    /**
+     * 管理员分页查询所有对话历史
+     *
+     * @param chatHistoryQueryRequest 查询请求
+     * @return 对话历史分页
+     */
+    @PostMapping("/admin/list/page/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<ChatHistory>> listAllChatHistoryByPageForAdmin(@RequestBody ChatHistoryQueryRequest chatHistoryQueryRequest) {
+        ThrowUtils.throwIf(chatHistoryQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        long pageNum = chatHistoryQueryRequest.getPageNum();
+        long pageSize = chatHistoryQueryRequest.getPageSize();
+        // 查询数据
+        QueryWrapper queryWrapper = chatHistoryService.getQueryWrapper(chatHistoryQueryRequest);
+        Page<ChatHistory> result = chatHistoryService.page(Page.of(pageNum, pageSize), queryWrapper);
+        return ResultUtils.success(result);
+    }
+    /**
+     * 获取应用的对话数量
+     *
+     * @param appId 应用 ID
+     * @return 对话数量
+     */
+    @GetMapping("/conversation-count/{appId}")
+    public BaseResponse<Long> getConversationCount(@PathVariable Long appId) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 无效");
+        int count = appService.getConversationCount(appId);
+        return ResultUtils.success((long) count);
     }
 }
 

@@ -73,5 +73,10 @@ public class AppVO implements Serializable {
      */
     private LocalDateTime updateTime;
 
+    /**
+     * 对话数量
+     */
+    private Integer conversationCount;
+
     private static final long serialVersionUID = 1L;
 }

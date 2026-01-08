@@ -26,7 +26,7 @@ create table if not exists user
 
 
 -- 应用表
-create table app
+create table if not exists app
 (
     id           bigint auto_increment comment 'id' primary key,
     appName      varchar(256)                       null comment '应用名称',
@@ -46,4 +46,26 @@ create table app
     INDEX idx_userId (userId)            -- 提升基于用户 ID 的查询性能
 ) comment '应用' collate = utf8mb4_unicode_ci;
 
+-- 对话历史表
+create table if not exists chat_history
+(
+    id          bigint auto_increment comment 'id' primary key,
+    message     text                    not null comment '消息',
+    messageType varchar(32)             not null comment 'user/ai',
+    appId       bigint                  not null comment '应用id',
+    userId      bigint                  not null comment '创建用户id',
+    createTime  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint  default 0      not null comment '是否删除',
+    INDEX idx_appId (appId),             -- 提升基于应用的查询性能
+    INDEX idx_createTime (createTime),   -- 提升基于时间的查询性能
+    INDEX idx_appId_createTime (appId, createTime) -- 游标查询核心索引
+) comment '对话历史' collate = utf8mb4_unicode_ci;
+-- 给chat_history表添加parentId字段
+ALTER TABLE chat_history
+    ADD COLUMN parentId bigint NULL COMMENT '父消息id（用于上下文关联）';
 
+-- ...existing code...
+
+-- 在 app 表中添加对话次数字段
+ALTER TABLE app ADD COLUMN conversation_count BIGINT DEFAULT 0 COMMENT '对话总轮次';
