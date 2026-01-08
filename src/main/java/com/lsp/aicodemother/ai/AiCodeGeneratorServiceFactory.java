@@ -45,7 +45,8 @@ public class AiCodeGeneratorServiceFactory {
     })
             .build();
 
-    public AiCodeGeneratorService getAiCodeGeneratorService(long appId){
+    public final AiCodeGeneratorService getAiCodeGeneratorService(long appId){
+        //如果没有这个appId的服务，则创建一个新的并且会存进缓存
         return serviceCache.get(appId,this::createAiCodeGeneratorService);
     }
 

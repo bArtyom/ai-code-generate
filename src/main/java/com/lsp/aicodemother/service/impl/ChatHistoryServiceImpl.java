@@ -2,6 +2,8 @@ package com.lsp.aicodemother.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.lsp.aicodemother.ai.AiCodeGeneratorService;
+import com.lsp.aicodemother.ai.AiCodeGeneratorServiceFactory;
 import com.lsp.aicodemother.constant.UserConstant;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.exception.ThrowUtils;
@@ -43,6 +45,10 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     @Resource
     @Lazy
     private AppService appService;
+
+    @Autowired
+    private AiCodeGeneratorServiceFactory aiCodeGeneratorServiceFactory;
+
 
     @Override
     public boolean addChatMessage(Long appId, String message, String messageType, Long userId) {
@@ -169,6 +175,9 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 } else if (ChatHistoryMessageTypeEnum.AI.getValue().equals(history.getMessageType())) {
                     chatMemory.add(AiMessage.from(history.getMessage()));
                     loadedCount++;
+                }else{
+                    chatMemory.add(UserMessage.from(history.getMessage()));
+                    loadedCount++;
                 }
             }
 
@@ -200,13 +209,28 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 markdownBuilder.append(history.getMessage()).append("\n\n");
             }
         }
+
         return markdownBuilder.toString();
 
     }
 
     @Override
-    public List<ChatHistory> compressedChatHistory(Long appId) {
-        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用ID不能为空");
-
+    public void compressedChatHistory(List<ChatHistory> historyList,Long appId) {
+        if(CollUtil.isEmpty(historyList))
+            return;
+        if(historyList.size()<=5)
+            return;
+        AiCodeGeneratorService aiCodeGeneratorService= aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+        StringBuilder sb=new StringBuilder();
+        for(int i=historyList.size()-6;i>=0;i--){
+            ChatHistory chatHistory=historyList.get(i);
+            sb.append(chatHistory.getMessageType()).append(":\n");
+            sb.append(chatHistory.getMessage()).append("\n\n");
+        }
+        String toBeCompressed=sb.toString();
+        String compressed=aiCodeGeneratorService.generateCodeChatHistory(toBeCompressed);
+        ChatHistory chatHistory=ChatHistory.builder().message(compressed).build();
+        historyList.subList(0,historyList.size()-5).clear();
+        historyList.addFirst(chatHistory);
     }
 }

@@ -33,6 +33,6 @@ public interface ChatHistoryService extends IService<ChatHistory> {
 
     String exportToMarkdown(Long appId);
 
-    List<ChatHistory> compressedChatHistory(Long appId);
+    void compressedChatHistory(List<ChatHistory> historyList,Long appId);
 
 }

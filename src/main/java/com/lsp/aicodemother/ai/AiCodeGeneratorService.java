@@ -2,11 +2,14 @@ package com.lsp.aicodemother.ai;
 
 import com.lsp.aicodemother.ai.model.HtmlCodeResult;
 import com.lsp.aicodemother.ai.model.MultiFileCodeResult;
+import com.lsp.aicodemother.model.entity.ChatHistory;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 public interface AiCodeGeneratorService {
 
@@ -19,7 +22,6 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
-    @UserMessage
     HtmlCodeResult generateHtmlCode(/*@MemoryId int memory,*/ @V("userMessage")String userMessage);
 
     /**
@@ -29,7 +31,6 @@ public interface AiCodeGeneratorService {
      * @return 生成的代码结果
      */
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
-    @UserMessage
     MultiFileCodeResult generateMultiFileCode(/*@MemoryId int memory,*/@V("userMessage")String userMessage);
 
 
@@ -39,7 +40,6 @@ public interface AiCodeGeneratorService {
      * @param userMessage 用户消息
      * @return 生成的代码结果
      */
-    @UserMessage
     @SystemMessage(fromResource = "prompt/codegen-html-system-prompt.txt")
     Flux<String> generateHtmlCodeStream(/*@MemoryId int memory,*/@V("userMessage")String userMessage);
 
@@ -49,9 +49,11 @@ public interface AiCodeGeneratorService {
      * @param userMessage 用户消息
      * @return 生成的代码结果
      */
-    @UserMessage
+
     @SystemMessage(fromResource = "prompt/codegen-multi-file-system-prompt.txt")
     Flux<String> generateMultiFileCodeStream(/*@MemoryId int memory,*/@V("userMessage")String userMessage);
 
 
+    @SystemMessage(fromResource = "prompt/codegen-chat-history-system-prompt.txt")
+    String generateCodeChatHistory(@V("historyList") String historyList);
 }
