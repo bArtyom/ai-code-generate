@@ -69,3 +69,14 @@ ALTER TABLE chat_history
 
 -- 在 app 表中添加对话次数字段
 ALTER TABLE app ADD COLUMN conversation_count BIGINT DEFAULT 0 COMMENT '对话总轮次';
+
+-- 多人协作表
+create table if not exists app_member
+(
+    id          bigint auto_increment primary key,
+    appId       bigint                             not null comment '应用id',
+    userId      bigint                             not null comment '成员id',
+    role        varchar(32) default 'member'       not null comment '角色：admin/member',
+    createTime  datetime    default CURRENT_TIMESTAMP not null,
+    UNIQUE KEY uk_appId_userId (appId, userId)
+) comment '应用成员协作表' collate = utf8mb4_unicode_ci;

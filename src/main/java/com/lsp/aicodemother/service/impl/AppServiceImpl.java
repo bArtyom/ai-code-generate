@@ -275,5 +275,10 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     public int getConversationCount(Long appId) {
         return appMapper.getConversationCount(appId);
     }
+
+    @Override
+    public List<App> getMemberApp(Long userId) {
+        return appMapper.getMemberApp(userId);
+    }
 }
 

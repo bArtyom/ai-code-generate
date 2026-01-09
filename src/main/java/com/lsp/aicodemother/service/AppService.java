@@ -72,5 +72,7 @@ public interface AppService extends IService<App> {
     int incrementConversationCount(Long appId);
 
     int getConversationCount(Long appId);
+
+    List<App> getMemberApp(Long userId);
 }
 

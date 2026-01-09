@@ -439,5 +439,12 @@ public class AppController {
         int count = appService.getConversationCount(appId);
         return ResultUtils.success((long) count);
     }
+
+    @GetMapping("/member-app/{userId}")
+    public BaseResponse<Page<AppVO>> listMemberAppVOByPage(@PathVariable Long userId) {
+        ThrowUtils.throwIf(userId == null || userId <= 0, ErrorCode.PARAMS_ERROR, "用户 ID 无效");
+        List<App> appList = appService.getMemberApp(userId);
+        return ResultUtils.success();
+    }
 }
 

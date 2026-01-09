@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+import java.util.List;
+
 public interface AppMapper extends BaseMapper<App> {
 
     @Update("UPDATE app SET conversation_count = conversation_count + 1 WHERE id = #{appId}")
@@ -14,4 +16,6 @@ public interface AppMapper extends BaseMapper<App> {
 
     @Select("SELECT conversation_count FROM app WHERE id = #{appId}")
     int getConversationCount(@Param("appId") Long appId);
+
+    List<App> getMemberApp(Long userId);
 }
