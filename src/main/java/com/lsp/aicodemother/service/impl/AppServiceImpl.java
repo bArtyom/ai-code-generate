@@ -11,14 +11,18 @@ import com.lsp.aicodemother.exception.BusinessException;
 import com.lsp.aicodemother.exception.ErrorCode;
 import com.lsp.aicodemother.exception.ThrowUtils;
 import com.lsp.aicodemother.mapper.AppMapper;
+import com.lsp.aicodemother.mapper.AppMemberMapper;
 import com.lsp.aicodemother.model.dto.app.AppQueryRequest;
 import com.lsp.aicodemother.model.entity.App;
+import com.lsp.aicodemother.model.entity.AppMember;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.ChatHistoryMessageTypeEnum;
 import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
 import com.lsp.aicodemother.model.vo.UserVO;
+import com.lsp.aicodemother.service.AppMemberService;
 import com.lsp.aicodemother.service.UserService;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.lsp.aicodemother.service.AppService;
@@ -54,6 +58,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     private ChatHistoryServiceImpl chatHistoryService;
     @Autowired
     private AppMapper appMapper;
+    @Autowired
+    private AppMemberService appMemberService;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -162,7 +168,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         //2、查询应用信息
         App app=this.getById(appId);
         ThrowUtils.throwIf(app==null,ErrorCode.PARAMS_ERROR,"应用不存在");
-        //3、验证用户是否有权限访问该应用，仅本人可以生成代码
+        //3、TODO 验证用户是否有权限访问该应用，仅本人或者合作成员可以生成代码
+
         ThrowUtils.throwIf(!app.getUserId().equals(loginUser.getId()),ErrorCode.NO_AUTH_ERROR,"无权限访问该应用");
         //4、获取应用的代码生成类型
         // 4. 获取应用的代码生成类型
@@ -277,8 +284,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     }
 
     @Override
-    public List<App> getMemberApp(Long userId) {
-        return appMapper.getMemberApp(userId);
+    public Page<App> getMemberApp(Page<App> page,Long userId) {
+        return appMapper.getMemberApp(page,userId);
     }
 }
 

@@ -440,11 +440,19 @@ public class AppController {
         return ResultUtils.success((long) count);
     }
 
-    @GetMapping("/member-app/{userId}")
-    public BaseResponse<Page<AppVO>> listMemberAppVOByPage(@PathVariable Long userId) {
-        ThrowUtils.throwIf(userId == null || userId <= 0, ErrorCode.PARAMS_ERROR, "用户 ID 无效");
-        List<App> appList = appService.getMemberApp(userId);
-        return ResultUtils.success();
+    @PostMapping ("/member-app")
+    public BaseResponse<Page<AppVO>> listMemberAppVOByPage(@RequestBody AppMemberRequest memberRequest) {
+        ThrowUtils.throwIf(memberRequest == null, ErrorCode.PARAMS_ERROR);
+        Long userId = memberRequest.getMemberUserId();
+        int pageNum = memberRequest.getPageNum();
+        int pageSize = memberRequest.getPageSize();
+        ThrowUtils.throwIf(pageSize > 20, ErrorCode.PARAMS_ERROR, "单页数量不能超过20");
+        Page<App>page=Page.of(pageNum,pageSize);
+        Page<App> appPage = appService.getMemberApp(page,userId);
+        Page<AppVO> appVOPage = new Page<>(pageNum, pageSize, appPage.getTotalRow());
+        List<AppVO> appVOList = appService.getAppVOList(appPage.getRecords());
+        appVOPage.setRecords(appVOList);
+        return ResultUtils.success(appVOPage);
     }
 }
 

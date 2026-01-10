@@ -4,4 +4,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lsp.aicodemother.mapper.AppMapper">
 
+    <select id="getMemberApp" resultType="com.lsp.aicodemother.model.entity.App">
+        SELECT
+            a.*
+        FROM app a
+                 INNER JOIN app_member am ON a.id = am.appId
+        WHERE am.userId = #{userId}
+          AND a.isDelete = 0
+    </select>
 </mapper>

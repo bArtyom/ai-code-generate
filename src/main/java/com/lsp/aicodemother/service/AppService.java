@@ -4,6 +4,7 @@ import com.lsp.aicodemother.model.dto.app.AppQueryRequest;
 import com.lsp.aicodemother.model.entity.App;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.vo.AppVO;
+import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import reactor.core.publisher.Flux;
@@ -73,6 +74,6 @@ public interface AppService extends IService<App> {
 
     int getConversationCount(Long appId);
 
-    List<App> getMemberApp(Long userId);
+    Page<App> getMemberApp(Page<App>page,Long userId);
 }
 
