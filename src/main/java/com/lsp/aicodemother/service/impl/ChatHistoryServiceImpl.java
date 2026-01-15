@@ -11,6 +11,7 @@ import com.lsp.aicodemother.model.dto.chathistory.ChatHistoryQueryRequest;
 import com.lsp.aicodemother.model.entity.App;
 import com.lsp.aicodemother.model.entity.User;
 import com.lsp.aicodemother.model.enums.ChatHistoryMessageTypeEnum;
+import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.service.AppService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -220,7 +221,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
             return;
         if(historyList.size()<=5)
             return;
-        AiCodeGeneratorService aiCodeGeneratorService= aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+        AiCodeGeneratorService aiCodeGeneratorService= aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId, CodeGenTypeEnum.HTML);
         StringBuilder sb=new StringBuilder();
         for(int i=historyList.size()-6;i>=0;i--){
             ChatHistory chatHistory=historyList.get(i);
