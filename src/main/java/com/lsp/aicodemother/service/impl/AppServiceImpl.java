@@ -24,6 +24,7 @@ import com.lsp.aicodemother.model.enums.CodeGenTypeEnum;
 import com.lsp.aicodemother.model.vo.AppVO;
 import com.lsp.aicodemother.model.vo.UserVO;
 import com.lsp.aicodemother.service.AppMemberService;
+import com.lsp.aicodemother.service.ScreenshotService;
 import com.lsp.aicodemother.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -66,6 +67,29 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     private StreamHandlerExecutor streamHandlerExecutor;
     @Resource
     private VueProjectBuilder vueProjectBuilder;
+    @Resource
+    private ScreenshotService screenshotService;
+
+    /**
+     * 异步生成应用截图并更新封面
+     *
+     * @param appId  应用ID
+     * @param appUrl 应用访问URL
+     */
+    @Override
+    public void generateAppScreenshotAsync(Long appId, String appUrl) {
+        // 使用虚拟线程异步执行
+        Thread.startVirtualThread(() -> {
+            // 调用截图服务生成截图并上传
+            String screenshotUrl = screenshotService.generateAndUploadScreenshot(appUrl);
+            // 更新应用封面字段
+            App updateApp = new App();
+            updateApp.setId(appId);
+            updateApp.setCover(screenshotUrl);
+            boolean updated = this.updateById(updateApp);
+            ThrowUtils.throwIf(!updated, ErrorCode.OPERATION_ERROR, "更新应用封面字段失败");
+        });
+    }
 
     @Override
     public AppVO getAppVO(App app) {
@@ -242,6 +266,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         } catch (IORuntimeException e) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"部署应用失败，文件操作异常:"+e.getMessage());
         }
+
         //更新应用的deployKey和部署时间
         App updateApp=new App();
         updateApp.setId(appId);
@@ -249,7 +274,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         updateApp.setDeployedTime(LocalDateTime.now());
         boolean result=this.updateById(updateApp);
         ThrowUtils.throwIf(!result,ErrorCode.SYSTEM_ERROR,"部署应用失败，更新应用信息异常");
-        return String.format("%s/%s/",AppConstant.CODE_DEPLOY_HOST,deployKey);
+        // 10. 构建应用访问 URL
+        String appDeployUrl = String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+         // 11. 异步生成截图并更新应用封面
+        generateAppScreenshotAsync(appId, appDeployUrl);
+        return appDeployUrl;
     }
 
     /**

@@ -16,31 +16,51 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+/**
+ * 网页截图管理器
+ * 使用单线程执行器确保 WebDriver 操作线程安全
+ */
 @Slf4j
+@Component
 public class WebScreenshotUtils {
 
+    private static final int DEFAULT_WIDTH = 1600;
+    private static final int DEFAULT_HEIGHT = 900;
+    
+    /**
+     * WebDriver 实例(非线程安全,需要串行访问)
+     */
     private static final WebDriver webDriver;
+    
+    /**
+     * 单线程执行器,确保所有截图任务串行执行
+     */
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     static {
-        final int DEFAULT_WIDTH = 1600;
-        final int DEFAULT_HEIGHT = 900;
         webDriver = initChromeDriver(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
     @PreDestroy
     public void destroy() {
+        log.info("关闭 WebDriver 和执行器...");
+        executor.shutdown();
         webDriver.quit();
     }
 
     /**
      * 初始化 Chrome 浏览器驱动
      */
-    private static WebDriver initChromeDriver(int width, int height) {
+    public static WebDriver initChromeDriver(int width, int height) {
         try {
             // 自动管理 ChromeDriver
             WebDriverManager.chromedriver().setup();
@@ -128,17 +148,41 @@ public class WebScreenshotUtils {
     }
 
     /**
-     * 生成网页截图
+     * 生成网页截图(异步,线程安全)
+     * 所有截图任务会在单线程中串行执行,确保 WebDriver 线程安全
+     *
+     * @param webUrl 网页URL
+     * @return CompletableFuture<String> 压缩后的截图文件路径
+     */
+    public static CompletableFuture<String> saveWebPageScreenshotAsync(String webUrl) {
+        if (StrUtil.isBlank(webUrl)) {
+            log.error("网页URL不能为空");
+            return CompletableFuture.completedFuture(null);
+        }
+        
+        // 提交到单线程执行器,所有任务串行执行
+        return CompletableFuture.supplyAsync(() -> doScreenshot(webUrl), executor);
+    }
+
+    /**
+     * 生成网页截图(同步,阻塞等待结果)
      *
      * @param webUrl 网页URL
      * @return 压缩后的截图文件路径，失败返回null
      */
     public static String saveWebPageScreenshot(String webUrl) {
-        if (StrUtil.isBlank(webUrl)) {
-            log.error("网页URL不能为空");
+        try {
+            return saveWebPageScreenshotAsync(webUrl).get();
+        } catch (Exception e) {
+            log.error("网页截图失败：{}", webUrl, e);
             return null;
         }
+    }
 
+    /**
+     * 执行实际的截图操作(在单线程中执行)
+     */
+    private static String doScreenshot(String webUrl) {
         try {
             // 创建临时目录
             String rootPath = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "screenshots"

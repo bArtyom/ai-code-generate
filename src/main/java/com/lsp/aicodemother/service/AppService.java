@@ -75,5 +75,7 @@ public interface AppService extends IService<App> {
     int getConversationCount(Long appId);
 
     Page<App> getMemberApp(Page<App>page,Long userId);
+
+    void generateAppScreenshotAsync(Long appId, String appUrl);
 }
 
